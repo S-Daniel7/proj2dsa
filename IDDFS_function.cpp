@@ -13,19 +13,19 @@ struct Connection {
     string movieID; // Movie shared with said actor
 };
 
-using Graph = unordered_map<string, vector<Connection>>;
+using Graph = unordered_map<string, vector<Connection>>; // this maps an actors ID to the movies they are in and their co-stars. 
 
 
 
 bool depthLimitedDFS(
-    const Graph& graph,
+    const Graph& graph,   // defining the graph for the IDDFS to search
     const string& current,
     const string& target,
     int remainingDepth,
     unordered_set<string>& onPath,
     vector<Connection>& path
 ) {
-    if (current == target) {
+    if (current == target) {     
         return true;
     }
 
@@ -59,7 +59,7 @@ bool depthLimitedDFS(
             return true;
             }
 
-        // This route failed, so undo it before trying another.
+        // This route failed, so undo it and then try another. 
         path.pop_back();
         onPath.erase(neighbor.actorID);
     }
@@ -102,7 +102,7 @@ bool IDDFS(
 }
 
 
-Graph buildGraph(
+Graph buildGraph(  // Connects pairs of co-stars bidirectionally and also saves the movie that they are linked by. 
     const unordered_map<string, vector<string>>& movieCast
 ) {
     Graph graph;
@@ -117,7 +117,7 @@ Graph buildGraph(
 
         for (size_t i = 0; i < cast.size(); i++) {
             for (size_t j = i + 1; j < cast.size(); j++) {
-                // Actors are connected in both directions.
+               
                 graph[cast[i]].push_back({cast[j], movieID});
                 graph[cast[j]].push_back({cast[i], movieID});
             }
@@ -136,7 +136,7 @@ vector<string> splitTSV(const string& line) {
         fields.push_back(field);
     }
 
-    // Handle Windows line endings.
+    
     if (!fields.empty() &&
         !fields.back().empty() &&
         fields.back().back() == '\r') {
@@ -146,7 +146,7 @@ vector<string> splitTSV(const string& line) {
     return fields;
 }
 
-unordered_map<string, string> loadMovies(const string& filename) {
+unordered_map<string, string> loadMovies(const string& filename) { // specifcally laods entries with titleType "movie", while mapping their IDs to their names
     ifstream file(filename);
 
     if (!file) {
@@ -156,7 +156,7 @@ unordered_map<string, string> loadMovies(const string& filename) {
     unordered_map<string, string> movieTitles;
     string line;
 
-    getline(file, line); // Skip column headers.
+    getline(file, line); 
 
     while (getline(file, line)) {
         vector<string> fields = splitTSV(line);
@@ -165,9 +165,7 @@ unordered_map<string, string> loadMovies(const string& filename) {
             continue;
         }
 
-        // fields[0]: tconst (movie ID)
-        // fields[1]: titleType
-        // fields[2]: primaryTitle
+       
         if (fields[1] == "movie") {
             movieTitles[fields[0]] = fields[2];
         }
@@ -176,7 +174,7 @@ unordered_map<string, string> loadMovies(const string& filename) {
     return movieTitles;
 }
 
-unordered_map<string, vector<string>> loadMovieCast(
+unordered_map<string, vector<string>> loadMovieCast( // groups actors by movie ID. Set prevents duplicates of the same actor. 
     const string& filename,
     const unordered_map<string, string>& movieTitles
 ) {
@@ -189,7 +187,7 @@ unordered_map<string, vector<string>> loadMovieCast(
     unordered_map<string, unordered_set<string>> uniqueCast;
     string line;
 
-    getline(file, line); // Skip column headers.
+    getline(file, line); 
 
     while (getline(file, line)) {
         vector<string> fields = splitTSV(line);
@@ -198,9 +196,6 @@ unordered_map<string, vector<string>> loadMovieCast(
             continue;
         }
 
-        // fields[0]: tconst (movie ID)
-        // fields[2]: nconst (person ID)
-        // fields[3]: category
         const string& movieID = fields[0];
         const string& actorID = fields[2];
         const string& category = fields[3];
@@ -226,7 +221,7 @@ unordered_map<string, vector<string>> loadMovieCast(
     return movieCast;
 }
 
-unordered_map<string, string> loadActorNames(
+unordered_map<string, string> loadActorNames( // Pulls actual names from IDs
     const string& filename,
     const Graph& graph
 ) {
@@ -239,7 +234,7 @@ unordered_map<string, string> loadActorNames(
     unordered_map<string, string> actorNames;
     string line;
 
-    getline(file, line); // Skip column headers.
+    getline(file, line);
 
     while (getline(file, line)) {
         vector<string> fields = splitTSV(line);
@@ -248,8 +243,7 @@ unordered_map<string, string> loadActorNames(
             continue;
         }
 
-        // fields[0]: nconst (person ID)
-        // fields[1]: primaryName
+       
         if (graph.count(fields[0])) {
             actorNames[fields[0]] = fields[1];
         }
@@ -258,7 +252,7 @@ unordered_map<string, string> loadActorNames(
     return actorNames;
 }
 
-string findActorID(
+string findActorID( // Finds an actor by their name, so a person accessing the program can use an actors name instead of their ID. also handles duplicates by having the user pick.
     const unordered_map<string, string>& actorNames,
     const string& name
 ) {

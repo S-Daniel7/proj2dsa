@@ -61,6 +61,36 @@ cmake --build gui/build
 
 After changing the GUI, close the old window, rebuild, and run it again.
 
+## Build and run on Windows
+
+These instructions still need to be tested on a Windows computer.
+
+Install Visual Studio 2022 or its Build Tools with **Desktop development with
+C++**, CMake, and a Qt 6 MSVC 2022 64-bit kit. Use PowerShell in the project
+folder. Replace `C:/Qt/6.x.x/msvc2022_64` with your installed Qt kit folder:
+
+```powershell
+cmake -S gui -B gui/build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="C:/Qt/6.x.x/msvc2022_64"
+cmake --build gui/build --config Release
+```
+
+Extract the three IMDb `.gz` files using an archive tool such as 7-Zip.
+Create `gui/build/Release/data/` and put these extracted files inside it:
+
+- `title.basics.tsv`
+- `title.principals.tsv`
+- `name.basics.tsv`
+
+Windows needs the extracted files in this folder because automatic extraction
+in the current GUI uses the macOS `gzip` command.
+
+Add your Qt kit's `bin` folder to PATH for this terminal, then run the app:
+
+```powershell
+$env:PATH = "C:/Qt/6.x.x/msvc2022_64/bin;$env:PATH"
+.\gui\build\Release\actor_gui.exe
+```
+
 ## Files
 
 - `BFS_function.cpp`: Bidirectional BFS and its console program.
